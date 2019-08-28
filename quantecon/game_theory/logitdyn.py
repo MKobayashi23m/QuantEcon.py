@@ -11,8 +11,8 @@ class LogitDynamics:
 
     Parameters
     ----------
-    g : NormalFormGame
-        N-player game played
+    data : NormalFormGame or array-like
+        The game played in the logit-response dynamics model
 
     beta : scalar(float)
 
@@ -33,10 +33,16 @@ class LogitDynamics:
     player.logit_choice_cdfs : array-like
         The choice probability of each actions given opponents' actions.
     """
-    def __init__(self, g, beta=1.0):
-        self.N = g.N
-        self.players = g.players
-        self.nums_actions = g.nums_actions
+    def __init__(self, data, beta=1.0):
+        if isinstance(data, NormalFormGame):
+            self.g = data
+        else:  # data must be array_like
+            payoffs = np.asarray(data)
+            self.g = NormalFormGame(payoffs)
+
+        self.N = self.g.N
+        self.players = self.g.players
+        self.nums_actions = self.g.nums_actions
 
         self.beta = beta
 
@@ -54,8 +60,7 @@ class LogitDynamics:
     def logit_choice_cdfs(self):
         return tuple(player.logit_choice_cdfs for player in self.players)
 
-    def _play(self, player_ind, actions, random_state=None):
-        random_state = check_random_state(random_state)
+    def _play(self, player_ind, actions, random_state):
         i = player_ind
 
         # Tuple of the actions of opponent players i+1, ..., N, 0, ..., i-1
@@ -93,17 +98,20 @@ class LogitDynamics:
             The action profile after iteration
         """
         random_state = check_random_state(random_state)
+
         if init_actions is None:
             init_actions = random_pure_actions(self.nums_actions, random_state)
         init_actions = list(init_actions)
 
         if player_ind_seq is None:
+            random_state = check_random_state(random_state)
             player_ind_seq = random_state.randint(self.N, size=num_reps)
 
         if isinstance(player_ind_seq, numbers.Integral):
             player_ind_seq = [player_ind_seq]
 
         for t, player_ind in enumerate(player_ind_seq):
+            random_state = check_random_state(random_state)
             init_actions[player_ind] = self._play(player_ind, init_actions,
                                                   random_state)
 
@@ -124,16 +132,18 @@ class LogitDynamics:
         random_state : np.random.RandomState, optional(default=None)
             Random number generator used.
         """
-        random_state = check_random_state(random_state)
         if init_actions is None:
+            random_state = check_random_state(random_state)
             init_actions = random_pure_actions(self.nums_actions, random_state)
-        actions = [action for action in init_actions]
+        actions = list(init_actions)
 
         out = np.empty((ts_length, self.N), dtype=int)
+        random_state = check_random_state(random_state)
         player_ind_seq = random_state.randint(self.N, size=ts_length)
 
         for t, player_ind in enumerate(player_ind_seq):
             out[t, :] = actions[:]
+            random_state = check_random_state(random_state)
             actions[player_ind] = self._play(player_ind, actions, random_state)
 
         return out
