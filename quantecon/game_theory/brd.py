@@ -46,7 +46,7 @@ class BRD:
             action_dist[actions[i]] += 1
         return action_dist
 
-    def play(self, action, action_dist, random_state=None):
+    def play(self, action, action_dist, **options):
         """
         Return a new action distribution.
 
@@ -63,13 +63,19 @@ class BRD:
         ndarray(int)
             New action distribution.
         """
+        tie_breaking = options.get('tie_breaking', self.tie_breaking)
+        tol = options.get('tol', None)
+        random_state = check_random_state(options.get('random_state', None))
+
         action_dist[action] -= 1
         next_action = self.player.best_response(action_dist,
-                                                tie_breaking=self.tie_breaking)
+                                                tol=tol,
+                                                tie_breaking=self.tie_breaking,
+                                                random_state=random_state)
         action_dist[next_action] += 1
         return action_dist
 
-    def time_series(self, ts_length, init_action_dist=None, random_state=None):
+    def time_series(self, ts_length, init_action_dist=None, **options):
         """
         Return the time series of action distribution. The order of player who
         takes a action is randomly choosed.
@@ -87,20 +93,28 @@ class BRD:
         Array
             The array representing time series of action distribution.
         """
-        random_state = check_random_state(random_state)
+        tie_breaking = options.get('tie_breaking', self.tie_breaking)
+        tol = options.get('tol', None)
+        random_state = check_random_state(options.get('random_state', None))
+
         if init_action_dist is None:
             nums_actions = tuple([self.num_actions] * self.N)
             init_actions = random_pure_actions(nums_actions, random_state)
             init_action_dist = self._set_action_dist(init_actions)
 
         out = np.empty((ts_length, self.num_actions), dtype=int)
+        random_state = check_random_state(random_state)
         player_ind_seq = random_state.randint(self.N, size=ts_length)
         action_dist = np.asarray(init_action_dist)
         for t in range(ts_length):
             out[t, :] = action_dist[:]
             action = np.searchsorted(action_dist.cumsum(), player_ind_seq[t],
                                      side='right')
-            action_dist = self.play(action, action_dist, random_state)
+            random_state = check_random_state(random_state)
+            action_dist = self.play(action, action_dist,
+                                    tol=tol,
+                                    tie_breaking=tie_breaking,
+                                    random_state=random_state)
         return out
 
 
@@ -139,18 +153,25 @@ class KMR(BRD):
         # Mutation probability
         self.epsilon = epsilon
 
-    def play(self, action, action_dist, random_state=None):
+    def play(self, action, action_dist, **options):
         """
         See play in BRD.
         """
-        random_state = check_random_state(random_state)
+        tie_breaking = options.get('tie_breaking', self.tie_breaking)
+        tol = options.get('tol', None)
+        random_state = check_random_state(options.get('random_state', None))
+
         if random_state.rand() < self.epsilon:  # Mutation
             action_dist[action] -= 1
             random_state = check_random_state(random_state)
             next_action = self.player.random_choice(random_state=random_state)
             action_dist[next_action] += 1
         else:  # Best response
-            action_dist = BRD.play(self, action, action_dist)
+            random_state = check_random_state(random_state)
+            action_dist = BRD.play(self, action, action_dist,
+                                   tol=tol,
+                                   tie_breaking=tie_breaking,
+                                   random_state=random_state)
         return action_dist
 
 
@@ -189,16 +210,22 @@ class SamplingBRD(BRD):
         # Sample size
         self.k = k
 
-    def play(self, action, action_dist, random_state=None):
+    def play(self, action, action_dist, **options):
         """
         See play in BRD.
         """
-        random_state = check_random_state(random_state)
+        tie_breaking = options.get('tie_breaking', self.tie_breaking)
+        tol = options.get('tol', None)
+        random_state = check_random_state(options.get('random_state', None))
+
         action_dist[action] -= 1
         actions = random_state.choice(self.num_actions, size=self.k,
                                       replace=True, p=action_dist/(self.N-1))
         sample_action_dist = np.bincount(actions, minlength=self.num_actions)
+        random_state = check_random_state(random_state)
         next_action = self.player.best_response(sample_action_dist,
-                                                tie_breaking=self.tie_breaking)
+                                                tol=tol,
+                                                tie_breaking=tie_breaking,
+                                                random_state=random_state)
         action_dist[next_action] += 1
         return action_dist
