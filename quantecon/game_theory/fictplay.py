@@ -7,39 +7,39 @@ from .utilities import _copy_action_profile_to
 
 class FictitiousPlay:
     """
-    Class representing the fictitious play model.
+    Class representing a fictitious play model.
 
     Parameters
     ----------
-    data : NormalFormGame or array-like
-        The game played in fictitious play model
+    data : NormalFormGame, or array_like
+        The game played in a fictitious play model. `data` must be either
+        `NormalFormGame` or an array. See `NormalFormGame`.
 
     gain : scalar(float), optional(default=None)
-        The gain of fictitous play model. If gain is None, the model becomes
-        decreasing gain model. If gain is scalar, the model becomes constant
-        constant gain model.
+        The gain of fictitous play model. If gain is None, the model becomes a
+        decreasing gain model. If gain is a scalar, the model becomes a constant
+        gain model.
 
     Attributes
     ----------
     g : NomalFormGame
-        The game. See Parameters.
+        The game played in the model.
 
     N : scalar(int)
         The number of players in the model.
 
-    players : Player
-        Player instance in the model.
+    players : tuple(Player)
+        Tuple of the Player instances in the model.
 
     nums_actions : tuple(int)
         Tuple of the number of actions, one for each player.
-    """
 
+    """
     def __init__(self, data, gain=None):
         if isinstance(data, NormalFormGame):
             self.g = data
-        else:  # data must be array_like
-            payoffs = np.asarray(data)
-            self.g = NormalFormGame(payoffs)
+        else:
+            self.g = NormalFormGame(data)
 
         self.N = self.g.N
         self.players = self.g.players
@@ -73,20 +73,25 @@ class FictitiousPlay:
         Parameters
         ----------
         actions : tuple(array_like(float)), optional(default=None)
-            The action profile in the first period. If None, selected randomly.
+            The action profile in the initial period. If None, selected
+            randomly.
 
         num_reps : scalar(int), optional(default=1)
             The number of iterations.
 
         t_init : scalar(int), optional(default=0)
-            The period the game starts.
+            The period when the game starts.
 
-        out : tuple(array-like(float)), optional(default=None)
-            The tuple of actions which will be used in `_play` method.
+        out : tuple(array_like(float)), optional(default=None)
+            Alternative output tuple of arrays in which to place the result.
+            Must be of the same shape as the expected output. 
+
+        **options : Keyword arguments passed to the best response method and
+                    other methods.
 
         Returns
         -------
-        tuple(ndarray(float))
+        tuple(ndarray(float, ndim=1))
             The mixed action profile after iteration.
 
         """
@@ -110,7 +115,8 @@ class FictitiousPlay:
 
     def time_series(self, ts_length, init_actions=None, t_init=0, **options):
         """
-        Return the array representing time series of mixed action profile.
+        Return a tuple of arrays representing a time series of mixed action
+        profiles.
 
         Parameters
         ----------
@@ -118,15 +124,19 @@ class FictitiousPlay:
             The number of iterations.
 
         init_actions : tuple(int), optional(default=None)
-            The action profile in the first period. If None, selected randomly.
+            The action profile in the initial period. If None, selected
+            randomly.
 
         t_init : scalar(int), optional(default=0)
-            The period the game starts.
+            The period when the game starts.
+
+        **options : Keyword arguments passed to the best response method and
+                    other methods.
 
         Returns
         -------
         tuple(ndarray(float, ndim=2))
-            The array representing time series of mixed action profile.
+            Tuple of arrays representing time series of mixed action profile.
 
         """
         tie_breaking = options.get('tie_breaking', self.tie_breaking)
@@ -154,27 +164,26 @@ class FictitiousPlay:
 
 class StochasticFictitiousPlay(FictitiousPlay):
     """
-    Class representing the stoochastic fictitous play model.
-    Subclass of FictitiousPlay.
+    Class representing a stochastic fictitious play model.
 
     Parameters
     ----------
-    data : NormalFormGame or array-like
+    data : NormalFormGame or array_like
         The game played in the stochastic fictitious play model.
 
     distribution : scipy.stats object
-        statistical distribution from scipy.stats
+        The distribution of payoff shocks, which is a `scipy.stats` object.
 
     gain : scalar(scalar), optional(default=None)
-        The gain of fictitous play model. If gain is None, the model becomes
-        decreasing gain model. If gain is scalar, the model becomes constant
-        constant gain model.
+        The gain of fictitious play model. If gain is None, the model becomes a
+        decreasing gain model. If gain is a scalar, the model becomes a constant
+        gain model.
 
     Attributes
     ----------
-    See attributes of FictitousPlay.
-    """
+    See attributes of `FictitousPlay`.
 
+    """
     def __init__(self, data, distribution, gain=None):
         FictitiousPlay.__init__(self, data, gain)
 
