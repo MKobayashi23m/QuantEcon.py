@@ -7,19 +7,20 @@ from .random import random_pure_actions
 
 class LogitDynamics:
     """
-    Class representing the logit-response dynamics model
+    Class representing the logit-response dynamics model.
 
     Parameters
     ----------
-    data : NormalFormGame or array-like
-        The game played in the logit-response dynamics model
+    data : NormalFormGame or array_like
+        The game played in the logit-response dynamics model.
 
     beta : scalar(float)
+        The level of noise in player's decision.
 
     Attributes
     ----------
     N : scalar(int)
-        The number of players in the game
+        The number of players in the game.
 
     players : list(Player)
         The list consisting of all players with the given payoff matrix.
@@ -28,17 +29,17 @@ class LogitDynamics:
         Tuple of the number of actions, one for each player.
 
     beta : scalar(float)
-        See Parameters.
+        See parameters.
 
-    player.logit_choice_cdfs : array-like
+    player.logit_choice_cdfs : array_like(float)
         The choice probability of each actions given opponents' actions.
+
     """
     def __init__(self, data, beta=1.0):
         if isinstance(data, NormalFormGame):
             self.g = data
         else:  # data must be array_like
-            payoffs = np.asarray(data)
-            self.g = NormalFormGame(payoffs)
+            self.g = NormalFormGame(data)
 
         self.N = self.g.N
         self.players = self.g.players
@@ -58,6 +59,10 @@ class LogitDynamics:
             # player.logit_choice_cdfs /= player.logit_choice_cdfs[..., [-1]]
 
     def logit_choice_cdfs(self):
+        """
+        Return the tuple of choice probabilities.
+
+        """
         return tuple(player.logit_choice_cdfs for player in self.players)
 
     def _play(self, player_ind, actions, random_state):
@@ -81,10 +86,11 @@ class LogitDynamics:
         Parameters
         ----------
         init_actions : tuple(int), optional(default=None)
-            The action profile in the first period. If None, selected randomly.
+            The action profile in the initial period. If None, selected
+            randomly.
 
         player_ind_seq : list(int), optional(default=None)
-            The sequence of player index. If None, selected randomly.
+            The sequence of player indices. If None, selected randomly.
 
         num_reps : scalar(int), optional(default=1)
             The number of iterations.
@@ -95,7 +101,8 @@ class LogitDynamics:
         Return
         ------
         tuple(int)
-            The action profile after iteration
+            The action profile after iterations.
+
         """
         random_state = check_random_state(random_state)
 
@@ -119,7 +126,7 @@ class LogitDynamics:
 
     def time_series(self, ts_length, init_actions=None, random_state=None):
         """
-        Return the array representing time series of action profile.
+        Return the array representing time series of action profiles.
 
         Parameters
         ----------
@@ -127,10 +134,17 @@ class LogitDynamics:
             The number of iterations.
 
         init_actions : tuple(int), optional(default=None)
-            The action profile in the first period. If None, selected randomly.
+            The action profile in the initial period. If None, selected
+            randomly.
 
         random_state : np.random.RandomState, optional(default=None)
             Random number generator used.
+
+        Return
+        ------
+        ndarray(int)
+            The array representing the time series of action profiles.
+
         """
         if init_actions is None:
             random_state = check_random_state(random_state)
