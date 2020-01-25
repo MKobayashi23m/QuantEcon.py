@@ -19,13 +19,14 @@ class BRD:
     Attributes
     ----------
     N : scalar(int)
-        The number of players
+        The number of players.
 
     num_actions : scalar(int)
-        The number of actions
+        The number of actions.
 
     player : Player
         Player instance in the model.
+
     """
     def __init__(self, payoff_matrix, N):
         A = np.asarray(payoff_matrix)
@@ -56,12 +57,15 @@ class BRD:
             Pure action of player who takes action.
 
         action_dist : ndarray(int)
-            Action distribution of players.
+            The initial action distribution of players.
+
+        **options : Keyword arguments passed to the best response method.
 
         Returns
         -------
         ndarray(int)
             New action distribution.
+
         """
         tie_breaking = options.get('tie_breaking', self.tie_breaking)
         tol = options.get('tol', None)
@@ -77,7 +81,7 @@ class BRD:
 
     def time_series(self, ts_length, init_action_dist=None, **options):
         """
-        Return the time series of action distribution. The order of player who
+        Return a time series of action distributions. The order of player who
         takes a action is randomly choosed.
 
         Parameters
@@ -88,10 +92,14 @@ class BRD:
         init_action_dist : array_like(int), optional(default=None)
             The initial action distribution. If None, determined randomly.
 
+        **options : Keyword arguments passed to the best response method and
+                    other methods.
+
         Returns
         -------
-        Array
-            The array representing time series of action distribution.
+        ndarray(int)
+            The array representing time series of action distributions.
+
         """
         tie_breaking = options.get('tie_breaking', self.tie_breaking)
         tol = options.get('tol', None)
@@ -120,7 +128,7 @@ class BRD:
 
 class KMR(BRD):
     """
-    Class representing the Kandori-Mailath-Rob model. Subclass of `BRD`.
+    Class representing the Kandori-Mailath-Rob model.
 
     Parameters
     ----------
@@ -136,16 +144,17 @@ class KMR(BRD):
     Attributes
     ----------
     N : scalar(int)
-        The number of players
+        See parameters.
 
     num_actions : scalar(int)
-        The number of actions
+        The number of actions.
 
     player : Player
         Player instance in the model.
 
     epsilon : scalar(float)
-        The probability of strategy flips.
+        See parameters.
+
     """
     def __init__(self, payoff_matrix, N, epsilon=0.1):
         BRD.__init__(self, payoff_matrix, N)
@@ -155,7 +164,8 @@ class KMR(BRD):
 
     def play(self, action, action_dist, **options):
         """
-        See play in BRD.
+        See `play` in `BRD`.
+
         """
         tie_breaking = options.get('tie_breaking', self.tie_breaking)
         tol = options.get('tol', None)
@@ -177,7 +187,7 @@ class KMR(BRD):
 
 class SamplingBRD(BRD):
     """
-    Class representing the sampling BRD model. Subclass of `BRD`.
+    Class representing the sampling BRD model.
 
     Parameters
     ----------
@@ -193,16 +203,17 @@ class SamplingBRD(BRD):
     Attributes
     ----------
     N : scalar(int)
-        The number of players
+        See parameters.
 
     num_actions : scalar(int)
-        The number of actions
+        The number of actions.
 
     player : Player
         Player instance in the model.
 
     k : scalar(int), default=2
-        Sample size.
+        See parameters.
+
     """
     def __init__(self, payoff_matrix, N, k=2):
         BRD.__init__(self, payoff_matrix, N)
@@ -212,7 +223,8 @@ class SamplingBRD(BRD):
 
     def play(self, action, action_dist, **options):
         """
-        See play in BRD.
+        See `play` in `BRD`.
+
         """
         tie_breaking = options.get('tie_breaking', self.tie_breaking)
         tol = options.get('tol', None)
