@@ -13,13 +13,12 @@ class LocalInteraction:
     Parameters
     ----------
     payoff_matrix : array_like(float, ndim=2)
-        The payoff matrix of the symmetric two-player game played in
-        each interaction.
+        The payoff matrix of the symmetric two-player game played in　each
+        interaction.
 
     adj_matrix : array_like(float, ndim=2)
-        The adjacency matrix of the network. Non constant weights and
-        asymmetry in interactions are allowed, where adj_matrix[i, j] is
-        the weight of player j's action on player i.
+        The adjacency matrix of the network. Non constant weights and　asymmetry
+        in interactions are allowed.
 
     Attributes
     ----------
@@ -30,10 +29,11 @@ class LocalInteraction:
         See Parameters.
 
     N : scalar(int)
-        The Number of players.
+        The number of players.
 
     num_actions : scalar(int)
         The number of actions available to each player.
+
     """
     def __init__(self, payoff_matrix, adj_matrix):
         self.adj_matrix = sparse.csr_matrix(adj_matrix)
@@ -90,10 +90,14 @@ class LocalInteraction:
         num_reps : scalar(int), optional(default=1)
             The number of iterations.
 
+        **options : Keyword arguments passed to the best response method and
+                    other methods.
+
         Returns
         -------
         tuple(int)
-            The action profile after iteration.
+            The action profile after iterations.
+
         """
         tie_breaking = options.get('tie_breaking', self.tie_breaking)
         tol = options.get('tol', None)
@@ -130,7 +134,7 @@ class LocalInteraction:
     def time_series(self, ts_length, revision='simultaneous',
                     actions=None, player_ind_seq=None, **options):
         """
-        Return the array representing time series of each player's actions.
+        Return an array representing time series of each player's actions.
 
         Parameters
         ----------
@@ -147,13 +151,17 @@ class LocalInteraction:
             The action profile in the first period. If None, selected randomly.
 
         player_ind_seq : array_like, optional(default=None)
-            The sequence of `player_ind`(see `play` Parameters). If None, all
-            elements are array designating all players.
+            The sequence of `player_ind`(see `play` Parameters) when the
+            revision is 'asynchronous'. If None, selected randomly.
+
+        **options : Keyword arguments passed to the best response method and
+                    other methods.
 
         Returns
         -------
         Array_like(int)
             The array representing time series of each player's actions.
+
         """
         tie_breaking = options.get('tie_breaking', self.tie_breaking)
         tol = options.get('tol', None)
